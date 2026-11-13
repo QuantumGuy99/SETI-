@@ -29,6 +29,13 @@ missed, set it too low and noise triggers false alarms.
 5. **ML model:** training a small convolutional network to classify them
    (in progress).
 
+   | Cutoff | False alarms | SNR 3-6 | SNR 6-9 | SNR 9-12 |
+   |-------:|-------------:|--------:|--------:|---------:|
+   | 0.3    | 18.3%        | 50%     | 88%     | 100%     |
+   | 0.5    | 8.7%         | 29%     | 76%     | 100%     |
+   | 0.7    | 3.3%         | 16%     | 63%     | 97%      |
+   | 0.9    | 0.3%         | 6%      | 53%     | 89%      |
+
 ## Planned next steps
 - Compare the model against `turbo_seti` on the same data, including false
   alarm rates.
