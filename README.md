@@ -26,8 +26,18 @@ missed, set it too low and noise triggers false alarms.
      noise.
 4. **ML dataset:** generated 3,000 labeled spectrograms (half with a hidden
    drifting signal, half noise only) with random SNR from 3 to 15.
-5. **ML model:** training a small convolutional network to classify them
-   (in progress).
+5. **ML model:** trained a small convolutional network (3 conv layers,
+   15 epochs) to classify them. On a held-out test set of 600 spectrograms
+   (20% of the data, never used in training) it reached about 85% accuracy.
+
+   The network outputs a probability that a signal is present; the
+   **cutoff** is the probability above which we call it a detection.
+   Raising the cutoff trades sensitivity for fewer false alarms.
+   **False alarms** is the fraction of the 300 noise-only test examples
+   flagged as signals; the **SNR** columns are the fraction of injected
+   signals detected in each SNR range (62, 83 and 70 signals respectively).
+   At the default cutoff of 0.5, all 85 signals with SNR 12-15 were detected.
+   Single training run, so these numbers are preliminary.
 
    | Cutoff | False alarms | SNR 3-6 | SNR 6-9 | SNR 9-12 |
    |-------:|-------------:|--------:|--------:|---------:|
