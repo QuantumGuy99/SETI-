@@ -75,12 +75,56 @@ missed, set it too low and noise triggers false alarms.
    training order are not seeded yet. The cutoff table above and this
    comparison come from different runs.
 
+7. **Larger, repeated comparison on harder signals:** redid the comparison
+   with 10,000 training frames, longer training (best epoch kept on a
+   validation set), 3 seeds, and 5% cutoffs set on a separate set of
+   noise-only frames, so the test frames are never used to tune anything.
+   Then repeated it for signals the straight-line search was not built for:
+   paths that bend (**curved**), brightness that swings ±60% around its
+   average (**wobble**), and both. Each test set has 2,000 frames.
+   Numbers are the mean ± spread over the 3 seeds; detection rates are at
+   a matched 5% false alarm rate.
+
+   | Signals       | Method       | ROC AUC       | SNR 3-6     | SNR 6-9     |
+   |---------------|--------------|---------------|-------------|-------------|
+   | Straight      | CNN          | 0.923 ± 0.008 | 31% ± 2     | 84% ± 2     |
+   |               | Drift search | 0.951 ± 0.004 | 49% ± 3     | 100% ± 1    |
+   | Curved+wobble | CNN          | 0.945 ± 0.004 | 42% ± 1     | 93% ± 2     |
+   |               | Drift search | 0.914 ± 0.009 | 26% ± 4     | 80% ± 2     |
+   | Curved only   | CNN          | 0.925 ± 0.006 | 29% ± 4     | 88% ± 2     |
+   |               | Drift search | 0.906 ± 0.010 | 25% ± 3     | 73% ± 4     |
+   | Wobble only   | CNN          | 0.950 ± 0.004 | 48% ± 3     | 97% ± 2     |
+   |               | Drift search | 0.946 ± 0.003 | 45% ± 1     | 99% ± 1     |
+
+   Above SNR 9 both methods find essentially every signal.
+
+   ![Detection rate vs. SNR for the CNN and the drift search](figures/cnn_vs_drift_search.png)
+
+   What this shows:
+   - **Straight signals:** the drift search still clearly wins, even with
+     4× more training data. So the CNN's earlier loss was not just
+     undertraining.
+   - **Curved signals:** the CNN wins, by a margin well outside the
+     seed-to-seed spread, mostly at SNR 6-9.
+   - **Wobble only:** the two are about even. Brightness changes alone
+     do not hurt a search that adds up power along the whole line;
+     **the bending path is what breaks the straight-line assumption.**
+
+   Caveats: the baseline is a *straight-line* search like `turbo_seti`, so
+   this shows the CNN beats the standard search, not every classical
+   method; a search that also tries curved paths is the next, harder
+   baseline. The straight runs used a wider drift range (±0.3 Hz/s) than
+   the others (±0.2 Hz/s), so compare the curved and wobble rows with each
+   other rather than with the straight rows. These numbers came from a CPU
+   run; a GPU run of the same seeded notebook may differ very slightly.
+
 ## Planned next steps
-- Fix random seeds and repeat trials to get averaged results with error bars.
-- Test both methods on signals where a straight-line search should struggle:
-  curved (non-linear) drift, broader or intermittent signals, and
-  interference.
-- Test on real archive data.
+- Add a classical baseline that also searches curved paths, to see whether
+  the CNN still wins against a search that knows signals can bend.
+- Use real noise: inject signals into actual Breakthrough Listen data
+  instead of simulated chi-squared noise.
+- Anomaly detection: train a model on (real) noise only and flag anything
+  that does not look like noise, with no signal template at all.
 
 ## Caveats
 - The synthetic data is simple (one signal type, fixed width), so results do
