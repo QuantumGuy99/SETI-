@@ -4,7 +4,20 @@ An undergraduate research project exploring how well a standard SETI search
 algorithm detects faint drifting radio signals, and whether a small neural
 network can do better.
 
-**Status:** in progress. Early experiments only, so results are preliminary.
+**Status:** in progress. All results so far are on simulated data.
+
+## Key findings so far
+- On simple **straight** drifting signals, a classical straight-line drift
+  search (the core idea behind `turbo_seti`) beats a small CNN
+  (ROC AUC 0.951 vs. 0.923), even with 10,000 training frames.
+- On signals whose **path bends**, the CNN beats that same search
+  (AUC 0.945 vs. 0.914 for curved, wobbling signals), consistently across
+  3 seeds.
+- **Brightness changes alone** do not help the CNN: with a straight path,
+  the two methods are about even. The bending path is what breaks the
+  straight-line search.
+- Next question: does the CNN still win against a classical search that
+  also tries curved paths, and on real telescope noise?
 
 ## Background
 SETI searches look for narrowband radio signals that drift in frequency
@@ -71,9 +84,10 @@ missed, set it too low and noise triggers false alarms.
    CNN to be worth using, it probably needs data where that assumption
    breaks down.
 
-   Note: the CNN numbers vary from run to run because the noise and the
-   training order are not seeded yet. The cutoff table above and this
-   comparison come from different runs.
+   Note: these early numbers came from unseeded runs, so they varied from
+   run to run, and the cutoff table above and this comparison come from
+   different runs. The notebook is now seeded, and item 7 below repeats
+   the comparison more carefully.
 
 7. **Larger, repeated comparison on harder signals:** redid the comparison
    with 10,000 training frames, longer training (best epoch kept on a
@@ -127,8 +141,12 @@ missed, set it too low and noise triggers false alarms.
   that does not look like noise, with no signal template at all.
 
 ## Caveats
-- The synthetic data is simple (one signal type, fixed width), so results do
-  not necessarily carry over to real telescope data.
+- All results so far use simulated chi-squared noise and simple signal
+  shapes (fixed width; straight, curved or wobbling paths), so they do not
+  necessarily carry over to real telescope data.
+- The baseline is a straight-line search. A classical search that also
+  tries curved paths has not been tested yet.
+- Results come from 3 seeds; more would tighten the error bars.
 - `setigen` injected SNR and `turbo_seti` reported SNR are measured
   differently and are not directly interchangeable.
 
@@ -140,6 +158,12 @@ missed, set it too low and noise triggers false alarms.
 ## Running it
 Open the notebook in Google Colab and run the first cell, which installs
 dependencies and downloads the Voyager file (about 50 MB).
+
+The larger experiments at the end of the notebook (item 7) train 12 models.
+Switch to a GPU runtime first (Runtime → Change runtime type → T4 GPU).
+They took about 53 minutes on a 4-core CPU and would take hours on Colab's
+default CPU. The notebook is seeded, so a rerun should give nearly the
+same numbers.
 
 ## Author
 Sharvil Talware
