@@ -46,11 +46,41 @@ missed, set it too low and noise triggers false alarms.
    | 0.7    | 3.3%         | 16%     | 63%     | 97%      |
    | 0.9    | 0.3%         | 6%      | 53%     | 89%      |
 
+6. **Fair classical baseline:** comparing the CNN to `turbo_seti` directly
+   was not like for like (different file sizes and thresholds). So I wrote a
+   small drift search that runs on the same 32×256 test frames the CNN sees.
+   It adds up the power along every straight drift line through the frame
+   (covering the full injected drift range) and keeps the strongest one,
+   which is the core idea behind `turbo_seti`.
+
+   Both methods give one score per frame, so sweeping a cutoff over each
+   gives an ROC curve (detection rate vs. false alarm rate). For a per-SNR
+   comparison, each method's cutoff is set so that both flag exactly 5% of
+   the 300 noise-only test frames:
+
+   | Method       | ROC AUC | SNR 3-6 | SNR 6-9 | SNR 9-12 | SNR 12-15 |
+   |--------------|--------:|--------:|--------:|---------:|----------:|
+   | CNN          | 0.924   | 21%     | 77%     | 96%      | 100%      |
+   | Drift search | 0.953   | 45%     | 96%     | 100%     | 100%      |
+
+   **The simple drift search beats the CNN**, and the gap is largest for
+   faint signals: at SNR 3-6 it finds about twice as many. A separate test
+   run gave the same picture (AUC 0.950 vs. 0.927). This is not surprising:
+   the synthetic signals are perfectly straight lines in plain noise, which
+   is exactly the case summing along straight lines is built for. For the
+   CNN to be worth using, it probably needs data where that assumption
+   breaks down.
+
+   Note: the CNN numbers vary from run to run because the noise and the
+   training order are not seeded yet. The cutoff table above and this
+   comparison come from different runs.
+
 ## Planned next steps
-- Compare the model against `turbo_seti` on the same data, including false
-  alarm rates.
-- Repeat trials to get detection-rate curves instead of single runs.
-- Test on more realistic signals and on real archive data.
+- Fix random seeds and repeat trials to get averaged results with error bars.
+- Test both methods on signals where a straight-line search should struggle:
+  curved (non-linear) drift, broader or intermittent signals, and
+  interference.
+- Test on real archive data.
 
 ## Caveats
 - The synthetic data is simple (one signal type, fixed width), so results do
